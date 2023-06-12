@@ -1,12 +1,36 @@
 <?php
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    include 'partials/_dbconnect.php';
+include 'partials/_dbconnect.php';
+$showAlert = false;
+$showError = false;
+
+if($_SERVER['REQUEST_METHOD'] == "POST"){
     $username = $_POST['username'];
     $password = $_POST['password'];
     $cpassword = $_POST['cpassword'];
-}
 
+    $existSql = "SELECT * FROM `users` WHERE username = '$username'";
+    $result = mysqli_query($conn, $existSql);
+    $numExistRows = mysqli_num_rows($result);
+    if($numExistRows > 0){
+        // $exists = true;
+        $showError = "Username Already Exists";
+    }
+    else{
+        // $exists = false; 
+        if(($password == $cpassword)){
+            $sql = "INSERT INTO `users` ( `username`, `password`, `dt`) VALUES ('$username','$password',current_timestamp())";
+            $result = mysqli_query($conn, $sql);
+            if ($result){
+                $showAlert = true;
+            }
+        }
+        else{
+            $showError = "Passwords do not match";
+        }
+    }
+}
 ?>
+
 <!doctype html>
 <html lang="en">
 
@@ -23,20 +47,27 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <?php
     require_once 'partials/_navbar.php';
     ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+
+    <?php
+    if($showAlert){echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
         <strong>Success!</strong> Your Account is now Created and you can login.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    </div>';
+    }
+    if($showError){echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error!</strong>' . $showError.'
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>';
+    }
+    ?>
 
     <div class="container">
-        <h1 class="text-center">Hello, It is SignUp Page</h1>
         <h2 class="text-center">Please SignUp to our Website</h2><br><br>
 
-        <form>
+        <form action="/loginsystem/signup.php" method = "post">
             <div class="mb-3 col-md-4">
                 <label for="username" class="form-label">username</label>
-                <input type="email" class="form-control" id="username" name="username" aria-describedby="emailHelp">
-                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                <input type="text" class="form-control" id="username" name="username" aria-describedby="emailHelp">
             </div>
             <div class="mb-3 col-md-4">
                 <label for="password" class="form-label">Password</label>
